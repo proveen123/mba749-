@@ -1,0 +1,15 @@
+Source,Target,Type,Id,Weight
+v1,v2,Undirected,0,8
+v1,v8,Undirected,1,16
+v2,v3,Undirected,2,16
+v2,v8,Undirected,3,22
+v8,v9,Undirected,4,14
+v8,v7,Undirected,5,2
+v9,v7,Undirected,6,12
+v9,v3,Undirected,7,4
+v3,v4,Undirected,8,14
+v3,v6,Undirected,9,8
+v7,v6,Undirected,10,4
+v6,v4,Undirected,11,28
+v6,v5,Undirected,12,20
+v5,v4,Undirected,13,18

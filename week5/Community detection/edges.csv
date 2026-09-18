@@ -1,0 +1,15 @@
+Source,Target,Type
+v1,v2,Undirected
+v1,v3,Undirected
+v1,v4,Undirected
+v2,v3,Undirected
+v3,v4,Undirected
+v4,v5,Undirected
+v4,v6,Undirected
+v6,v5,Undirected
+v7,v8,Undirected
+v6,v7,Undirected
+v6,v8,Undirected
+v5,v7,Undirected
+v5,v8,Undirected
+v7,v9,Undirected

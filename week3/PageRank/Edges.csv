@@ -1,0 +1,14 @@
+Source,Target,Type
+A,D,directed
+A,C,directed
+A,E,directed
+B,A,directed
+B,F,directed
+C,B,directed
+C,F,directed
+C,D,directed
+D,E,directed
+E,G,directed
+F,D,directed
+F,G,directed
+G,C,directed
