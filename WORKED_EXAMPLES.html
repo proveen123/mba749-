@@ -1,0 +1,710 @@
+<title>Network Measures by Hand</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#EDEDF3; --surface:#FFFFFF; --sunk:#F5F5FA;
+  --ink:#171728; --body:#33334A; --muted:#61617A;
+  --line:#D9D9E6; --line-strong:#9A9AB4;
+  --accent:#3D34A0; --accent-soft:#EAE8F8;
+  --alt:#0E7C73; --alt-soft:#E0F1EF;
+  --warn:#8F5713; --warn-soft:#F6EEE0;
+  --cut:#B03A5B;
+  --serif:"IBM Plex Serif",Georgia,serif;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#111119; --surface:#1A1A26; --sunk:#15151F;
+    --ink:#EDEDF6; --body:#C6C6D8; --muted:#9494B0;
+    --line:#2C2C3C; --line-strong:#585872;
+    --accent:#9D93FF; --accent-soft:#262246;
+    --alt:#45C9B9; --alt-soft:#123330;
+    --warn:#DCA85E; --warn-soft:#2E2617;
+    --cut:#E4738F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111119; --surface:#1A1A26; --sunk:#15151F;
+  --ink:#EDEDF6; --body:#C6C6D8; --muted:#9494B0;
+  --line:#2C2C3C; --line-strong:#585872;
+  --accent:#9D93FF; --accent-soft:#262246;
+  --alt:#45C9B9; --alt-soft:#123330;
+  --warn:#DCA85E; --warn-soft:#2E2617;
+  --cut:#E4738F;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--body);font-family:var(--sans);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:880px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+h1,h2,h3{color:var(--ink);font-family:var(--serif);text-wrap:balance;margin:0}
+a{color:var(--accent)}
+p{margin:0 0 14px}
+
+/* ---- masthead ---- */
+.mast{padding-block:52px 30px;border-bottom:1px solid var(--line)}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+h1{font-size:clamp(30px,6.5vw,46px);line-height:1.08;font-weight:600;letter-spacing:-.015em}
+.standfirst{font-size:17px;line-height:1.55;color:var(--body);max-width:60ch;margin-top:16px}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+.toc a{font-family:var(--mono);font-size:11.5px;text-decoration:none;color:var(--muted);
+  border:1px solid var(--line);border-radius:100px;padding:4px 11px;background:var(--surface)}
+.toc a:hover{color:var(--accent);border-color:var(--accent)}
+
+/* ---- sections ---- */
+section{padding-block:44px;border-bottom:1px solid var(--line)}
+.shead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.wk{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:3px 8px;white-space:nowrap}
+h2{font-size:clamp(21px,3.6vw,27px);font-weight:600;letter-spacing:-.01em}
+.gloss{color:var(--muted);font-size:14.5px;max-width:62ch;margin:0 0 22px}
+
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px;align-items:start}
+@media (max-width:760px){.split{grid-template-columns:1fr;gap:20px}}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.duo{grid-template-columns:1fr}}
+
+/* ---- figures ---- */
+.dg{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 12px 10px}
+.dg svg{width:100%;height:auto;display:block;color:var(--body)}
+.dg figcaption{font-size:12.5px;line-height:1.45;color:var(--muted);margin-top:10px;padding:0 4px}
+.e{stroke:var(--line-strong);stroke-width:2;fill:none}
+.e-dim{stroke:var(--line-strong);stroke-width:1.5;fill:none;stroke-dasharray:4 4;opacity:.65}
+.e-hi{stroke:var(--accent);stroke-width:3.5;fill:none}
+.e-cut{stroke:var(--cut);stroke-width:2.5;fill:none;stroke-dasharray:6 4}
+.ah{fill:var(--line-strong)}
+.n{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5}
+.n.top{stroke:var(--accent);stroke-width:2.5}
+.n.alt{stroke:var(--alt);stroke-width:2.5}
+.n.c1{stroke:var(--accent);stroke-width:2.5}
+.n.c2{stroke:var(--alt);stroke-width:2.5}
+.gg{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:butt;opacity:.9}
+.lbl{font:600 13px var(--mono);fill:var(--ink);text-anchor:middle}
+.val{font:500 9.5px var(--mono);fill:var(--muted);text-anchor:middle}
+.ew{font:500 10.5px var(--mono);fill:var(--muted);text-anchor:middle}
+.side{font:400 11px var(--mono);fill:var(--muted)}
+.sidec{font:400 11px var(--mono);fill:var(--muted);text-anchor:middle}
+.wbg{fill:var(--surface);stroke:none}
+
+/* ---- formula + steps ---- */
+.calc{min-width:0}
+.calc h3{font-size:12px;font-family:var(--mono);font-weight:500;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.formula{font-family:var(--mono);font-size:14.5px;color:var(--ink);background:var(--sunk);
+  border-left:2px solid var(--accent);border-radius:0 6px 6px 0;padding:13px 15px;margin:0 0 16px;
+  overflow-x:auto;line-height:1.75}
+.formula .note{display:block;font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+.frac{display:inline-flex;flex-direction:column;vertical-align:-0.55em;text-align:center;margin:0 3px}
+.frac span:first-child{border-bottom:1px solid currentColor;padding:0 4px 1px}
+.frac span:last-child{padding:1px 4px 0}
+.steps{font-family:var(--mono);font-size:13px;line-height:1.85;font-variant-numeric:tabular-nums;
+  margin:0 0 14px;list-style:none;padding:0}
+.steps li{display:grid;grid-template-columns:minmax(0,auto) 1fr;gap:10px;
+  border-bottom:1px dotted var(--line);padding:3px 0}
+.steps li span:last-child{text-align:right;color:var(--ink)}
+.steps li.hl span:last-child{color:var(--accent);font-weight:500}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;
+  font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--muted);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--sunk)}
+tbody tr:last-child td{border-bottom:none}
+td.win{color:var(--accent);font-weight:600}
+td.lose{color:var(--muted)}
+
+/* ---- traps ---- */
+.traps{margin-top:26px;background:var(--warn-soft);border-radius:10px;padding:18px 20px}
+.traps h3{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--warn);margin:0 0 12px}
+.traps ul{margin:0;padding:0;list-style:none;display:grid;gap:11px}
+.traps li{position:relative;padding-left:20px;font-size:14px;line-height:1.55;color:var(--body)}
+.traps li::before{content:"";position:absolute;left:2px;top:8px;width:7px;height:7px;
+  background:var(--warn);border-radius:1px}
+.traps b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:.92em;background:var(--sunk);padding:1px 5px;border-radius:4px;
+  color:var(--ink)}
+.traps code{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.tell{margin-top:14px;font-size:13.5px;color:var(--warn);border-top:1px solid color-mix(in srgb,var(--warn) 25%,transparent);padding-top:11px}
+.tell b{color:var(--warn)}
+
+.lede{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 22px}
+.lede p:last-child{margin-bottom:0}
+footer{padding-block:34px;color:var(--muted);font-size:13px}
+footer code{font-size:12px}
+@media (prefers-reduced-motion:no-preference){.toc a{transition:color .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="kicker">MBA749 · Social Media Mining · Weeks 2–6</p>
+  <h1>Network Measures by Hand</h1>
+  <p class="standfirst">Every measure in the course, worked end-to-end on one small graph you can redraw from memory — with the specific mistakes that turn a correct method into a wrong answer the first time you run it.</p>
+  <nav class="toc">
+    <a href="#mst">Prim / MST</a><a href="#degree">Degree</a><a href="#eigen">Eigenvector</a>
+    <a href="#katz">Katz</a><a href="#pagerank">PageRank</a><a href="#betweenness">Betweenness</a>
+    <a href="#closeness">Closeness</a><a href="#clustering">Clustering</a><a href="#reciprocity">Reciprocity</a>
+    <a href="#similarity">Similarity</a><a href="#modularity">Modularity</a><a href="#louvain">Louvain</a>
+    <a href="#gn">Girvan–Newman</a><a href="#tfidf">TF-IDF</a>
+  </nav>
+</header>
+
+<section id="board">
+  <div class="shead"><span class="wk">The test graph</span></div>
+  <h2>Seven nodes, five measures, three different answers</h2>
+  <p class="gloss">Most of this page uses one graph: two triangles joined through a single broker. It is small enough to compute by hand and structured enough that the measures visibly disagree — which is the whole point of having more than one.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Undirected graph: triangle A-B-C, then C to D, D to E, then triangle E-F-G" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n " cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n " cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n " cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n " cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text></svg><figcaption>n = 7 nodes, m = 8 edges. D is a cut vertex: every route between the two triangles passes through it.</figcaption></figure>
+    <div class="calc">
+      <h3>Who is the most central node?</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>Node</th><th>Degree</th><th>Eigen.</th><th>Betw.</th><th>Close.</th><th>Clust.</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td class="lose">2</td><td class="lose">0.74</td><td class="lose">0</td><td class="lose">0.40</td><td class="win">1.00</td></tr>
+          <tr><td>B</td><td class="lose">2</td><td class="lose">0.74</td><td class="lose">0</td><td class="lose">0.40</td><td class="win">1.00</td></tr>
+          <tr><td>C</td><td class="win">3</td><td class="win">1.00</td><td>8</td><td>0.55</td><td class="lose">0.33</td></tr>
+          <tr><td>D</td><td class="lose">2</td><td>0.85</td><td class="win">9</td><td class="win">0.60</td><td class="lose">0.00</td></tr>
+          <tr><td>E</td><td class="win">3</td><td class="win">1.00</td><td>8</td><td>0.55</td><td class="lose">0.33</td></tr>
+          <tr><td>F</td><td class="lose">2</td><td class="lose">0.74</td><td class="lose">0</td><td class="lose">0.40</td><td class="win">1.00</td></tr>
+          <tr><td>G</td><td class="lose">2</td><td class="lose">0.74</td><td class="lose">0</td><td class="lose">0.40</td><td class="win">1.00</td></tr>
+        </tbody>
+      </table></div>
+      <p class="gloss" style="margin-bottom:0">Degree and eigenvector crown <b>C and E</b>. Betweenness and closeness crown <b>D</b> — a node with the <i>lowest</i> degree in the graph. Clustering crowns the four nodes nobody else would call important. Asking "who is central?" without naming a measure has no answer.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>How to read the diagrams</h3>
+    <ul>
+      <li><b>The ring around each node</b> is that node's value as a fraction of the largest value in the same graph. The number inside is the value itself.</li>
+      <li><b>Thick indigo edges</b> are the ones a step of the algorithm has selected; <b>dashed grey edges</b> are still in the graph but unused; <b>dashed red edges</b> are cut between communities.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="mst">
+  <div class="shead"><span class="wk">Week 2</span></div>
+  <h2>Minimum spanning tree — Prim's algorithm</h2>
+  <p class="gloss">The cheapest set of edges that still reaches every node. Grow one tree outward, always taking the cheapest edge that leaves the tree.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="20 14 435 190" role="img" aria-label="Weighted graph on six nodes with the minimum spanning tree highlighted" preserveAspectRatio="xMidYMid meet"><line class="e-dim" x1="60" y1="50" x2="60" y2="160"/><line class="e-hi" x1="60" y1="50" x2="175" y2="105"/><line class="e-hi" x1="60" y1="160" x2="175" y2="105"/><path class="e-hi" d="M60,160 Q180,178 300,105"/><line class="e-dim" x1="175" y1="105" x2="300" y2="105"/><path class="e-dim" d="M175,105 Q295,38 415,50"/><line class="e-hi" x1="300" y1="105" x2="415" y2="50"/><line class="e-dim" x1="300" y1="105" x2="415" y2="160"/><line class="e-hi" x1="415" y1="50" x2="415" y2="160"/><circle class="n " cx="60" cy="50" r="22.0"/><text class="lbl" x="60" y="54.5">A</text><circle class="n " cx="60" cy="160" r="22.0"/><text class="lbl" x="60" y="164.5">B</text><circle class="n " cx="175" cy="105" r="22.0"/><text class="lbl" x="175" y="109.5">C</text><circle class="n " cx="300" cy="105" r="22.0"/><text class="lbl" x="300" y="109.5">D</text><circle class="n " cx="415" cy="50" r="22.0"/><text class="lbl" x="415" y="54.5">E</text><circle class="n " cx="415" cy="160" r="22.0"/><text class="lbl" x="415" y="164.5">F</text><rect class="wbg" x="48.0" y="97.0" width="24.0" height="16" rx="4"/><text class="ew" x="60.0" y="109.0">4</text><rect class="wbg" x="105.5" y="69.5" width="24.0" height="16" rx="4"/><text class="ew" x="117.5" y="81.5">2</text><rect class="wbg" x="105.5" y="124.5" width="24.0" height="16" rx="4"/><text class="ew" x="117.5" y="136.5">1</text><rect class="wbg" x="168.0" y="147.25" width="24.0" height="16" rx="4"/><text class="ew" x="180.0" y="159.25">5</text><rect class="wbg" x="225.5" y="97.0" width="24.0" height="16" rx="4"/><text class="ew" x="237.5" y="109.0">8</text><rect class="wbg" x="283.0" y="49.75" width="24.0" height="16" rx="4"/><text class="ew" x="295.0" y="61.75">7</text><rect class="wbg" x="345.5" y="69.5" width="24.0" height="16" rx="4"/><text class="ew" x="357.5" y="81.5">2</text><rect class="wbg" x="345.5" y="124.5" width="24.0" height="16" rx="4"/><text class="ew" x="357.5" y="136.5">6</text><rect class="wbg" x="403.0" y="97.0" width="24.0" height="16" rx="4"/><text class="ew" x="415.0" y="109.0">3</text></svg><figcaption>The MST (thick) costs 13. The three dashed edges — A–B (4), C–D (8), C–E (7) — are never needed.</figcaption></figure>
+    <div class="calc">
+      <h3>The trace, starting from A</h3>
+      <ul class="steps">
+        <li><span>frontier A–B 4, A–C 2</span><span>take A–C (2)</span></li>
+        <li><span>A–B 4, B–C 1, C–D 8, C–E 7</span><span>take B–C (1)</span></li>
+        <li><span>B–D 5, C–D 8, C–E 7</span><span>take B–D (5)</span></li>
+        <li><span>C–E 7, D–E 2, D–F 6</span><span>take D–E (2)</span></li>
+        <li><span>C–E 7, D–F 6, E–F 3</span><span>take E–F (3)</span></li>
+        <li class="hl"><span>total weight</span><span>2+1+5+2+3 = 13</span></li>
+      </ul>
+      <div class="formula">edges in any spanning tree = n − 1 = 5
+        <span class="note">Start anywhere: starting from C gives the same five edges in a different order, still 13. With all-distinct weights the MST is unique.</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Grabbing the globally cheapest unused edge.</b> At step 3 the cheapest edge left in the whole graph is D–E (2), but neither D nor E is in the tree yet, so Prim cannot take it. Only edges with <b>exactly one endpoint inside</b> the tree are candidates. Taking the global minimum is Kruskal's rule — a different algorithm that needs a cycle check.</li>
+      <li><b>Adding an edge whose endpoints are both already in the tree.</b> That closes a cycle, and a tree has none. After each addition, exactly one <i>new</i> node joins.</li>
+      <li><b>Losing count.</b> An MST on n nodes has exactly n−1 edges. Five edges here — if you finish with four you left a node stranded, with six you made a cycle.</li>
+      <li><b>Assuming the MST contains shortest paths.</b> It does not. C to E costs 7 by the direct edge, but 1+5+2 = 8 along the tree. MST minimises <i>total</i> weight, never pairwise distance.</li>
+      <li><b>Panicking at ties.</b> Equal-weight edges mean several valid MSTs, all with the same total. Your answer isn't wrong for differing from the book's — but say which tie you broke.</li>
+    </ul>
+    <p class="tell"><b>Sanity check:</b> add the chosen weights, then swap any one tree edge for a dashed one. If the total ever drops, your tree isn't minimal.</p>
+  </div>
+</section>
+
+<section id="degree">
+  <div class="shead"><span class="wk">Week 3</span></div>
+  <h2>Degree centrality</h2>
+  <p class="gloss">Count the edges at a node. The cheapest measure there is, and the one that most often answers a different question than the one you asked.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="The test graph with each node's degree shown inside it" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><circle class="gg" cx="55" cy="55" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 55 55)"/><text class="lbl" x="55" y="54">A</text><text class="val" x="55" y="66">2</text><circle class="n " cx="55" cy="155" r="22.0"/><circle class="gg" cx="55" cy="155" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 55 155)"/><text class="lbl" x="55" y="154">B</text><text class="val" x="55" y="166">2</text><circle class="n top" cx="150" cy="105" r="22.0"/><circle class="gg" cx="150" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 150 105)"/><text class="lbl" x="150" y="104">C</text><text class="val" x="150" y="116">3</text><circle class="n " cx="250" cy="105" r="22.0"/><circle class="gg" cx="250" cy="105" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 250 105)"/><text class="lbl" x="250" y="104">D</text><text class="val" x="250" y="116">2</text><circle class="n top" cx="350" cy="105" r="22.0"/><circle class="gg" cx="350" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 350 105)"/><text class="lbl" x="350" y="104">E</text><text class="val" x="350" y="116">3</text><circle class="n " cx="445" cy="55" r="22.0"/><circle class="gg" cx="445" cy="55" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 445 55)"/><text class="lbl" x="445" y="54">F</text><text class="val" x="445" y="66">2</text><circle class="n " cx="445" cy="155" r="22.0"/><circle class="gg" cx="445" cy="155" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 445 155)"/><text class="lbl" x="445" y="154">G</text><text class="val" x="445" y="166">2</text></svg><figcaption>C and E lead with 3. D — the only route between the two halves — scores 2, the minimum.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">C<sub>d</sub>(v<sub>i</sub>) = d<sub>i</sub>
+        <span class="note">Directed: d<sup>in</sup> is <i>prestige</i>, d<sup>out</sup> is <i>gregariousness</i>.</span></div>
+      <ul class="steps">
+        <li><span>A, B, D, F, G</span><span>2 each</span></li>
+        <li><span>C, E</span><span>3 each</span></li>
+        <li><span>Σ d<sub>i</sub></span><span>16 = 2m ✓</span></li>
+      </ul>
+      <div class="formula">normalised: <span class="frac"><span>d<sub>i</sub></span><span>n−1</span></span> = <span class="frac"><span>3</span><span>6</span></span> = 0.50 for C and E
+        <span class="note">Other conventions: d<sub>i</sub>/max<sub>j</sub> d<sub>j</sub> (= 1.00 for C) and d<sub>i</sub>/2m (= 0.188 for C).</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Reading an edge list and counting each edge once.</b> Edge A–B raises the degree of A <i>and</i> of B. The check that catches it every time: Σd<sub>i</sub> must equal 2m — here 16 for 8 edges. An odd total is always an error.</li>
+      <li><b>Dividing by n instead of n−1.</b> A node cannot connect to itself, so the largest possible degree is n−1 = 6, not 7.</li>
+      <li><b>Mixing normalisations inside one comparison.</b> C scores 0.50, 1.00 or 0.188 depending on the denominator. All three are "degree centrality". Pick one and label it.</li>
+      <li><b>Reporting total degree on a directed graph.</b> "Who is most influential?" normally means in-degree. Adding in and out hides the difference between a celebrity and a spammer.</li>
+      <li><b>Self-loops.</b> A self-loop adds <b>2</b> to an undirected degree, not 1.</li>
+      <li><b>Believing the answer.</b> Degree cannot see position. Here it ranks the graph's single broker joint-last.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="eigen">
+  <div class="shead"><span class="wk">Week 3</span></div>
+  <h2>Eigenvector centrality</h2>
+  <p class="gloss">You are important if your neighbours are important. Defined circularly, and resolved by iterating until the circle stops changing.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="The test graph with eigenvector centrality scaled so the largest value is 1" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><circle class="gg" cx="55" cy="55" r="22.0" stroke-dasharray="102.29 138.23" transform="rotate(-90 55 55)"/><text class="lbl" x="55" y="54">A</text><text class="val" x="55" y="66">0.74</text><circle class="n " cx="55" cy="155" r="22.0"/><circle class="gg" cx="55" cy="155" r="22.0" stroke-dasharray="102.29 138.23" transform="rotate(-90 55 155)"/><text class="lbl" x="55" y="154">B</text><text class="val" x="55" y="166">0.74</text><circle class="n top" cx="150" cy="105" r="22.0"/><circle class="gg" cx="150" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 150 105)"/><text class="lbl" x="150" y="104">C</text><text class="val" x="150" y="116">1.00</text><circle class="n " cx="250" cy="105" r="22.0"/><circle class="gg" cx="250" cy="105" r="22.0" stroke-dasharray="117.50 138.23" transform="rotate(-90 250 105)"/><text class="lbl" x="250" y="104">D</text><text class="val" x="250" y="116">0.85</text><circle class="n top" cx="350" cy="105" r="22.0"/><circle class="gg" cx="350" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 350 105)"/><text class="lbl" x="350" y="104">E</text><text class="val" x="350" y="116">1.00</text><circle class="n " cx="445" cy="55" r="22.0"/><circle class="gg" cx="445" cy="55" r="22.0" stroke-dasharray="102.29 138.23" transform="rotate(-90 445 55)"/><text class="lbl" x="445" y="54">F</text><text class="val" x="445" y="66">0.74</text><circle class="n " cx="445" cy="155" r="22.0"/><circle class="gg" cx="445" cy="155" r="22.0" stroke-dasharray="102.29 138.23" transform="rotate(-90 445 155)"/><text class="lbl" x="445" y="154">G</text><text class="val" x="445" y="166">0.74</text></svg><figcaption>C and E (1.00) beat D (0.85): they each sit in a triangle, so their neighbours score well too.</figcaption></figure>
+    <div class="calc">
+      <h3>The power method, from all-ones</h3>
+      <div class="formula">c<sub>e</sub>(v<sub>i</sub>) = <span class="frac"><span>1</span><span>λ</span></span> Σ<sub>j</sub> A<sub>j,i</sub> c<sub>e</sub>(v<sub>j</sub>) &nbsp;⇔&nbsp; λC<sub>e</sub> = A<sup>T</sup>C<sub>e</sub></div>
+      <div class="scroll"><table>
+        <thead><tr><th>iteration</th><th>A,B,F,G</th><th>C, E</th><th>D</th></tr></thead>
+        <tbody>
+          <tr><td>t = 1</td><td>2</td><td>3</td><td>2</td></tr>
+          <tr><td>t = 2</td><td>5</td><td class="lose">6</td><td class="lose">6</td></tr>
+          <tr><td>t = 3</td><td>11</td><td>16</td><td>12</td></tr>
+          <tr><td>converged</td><td class="lose">0.74</td><td class="win">1.00</td><td>0.85</td></tr>
+        </tbody>
+      </table></div>
+      <div class="formula">λ<sub>1</sub> = 2.3429
+        <span class="note">t = 1 is just the degree vector — eigenvector centrality is degree, iterated. At t = 2, D <i>ties</i> C and E; stop there and you get the ranking wrong.</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Stopping the iteration too early.</b> Two steps in, this graph says C = D = E. Three steps in, the order is right. Iterate until the <i>ranking</i> stops moving, not until you are bored.</li>
+      <li><b>Comparing raw values across tools.</b> The eigenvector is only defined up to scale. Unit length gives C = 0.4496; scaled to max = 1 it is 1.00; scaled to sum = 1 it is different again. Only ranks and ratios are meaningful.</li>
+      <li><b>Not normalising between iterations.</b> The numbers grow by a factor of λ each step. On a real graph they overflow; on paper they get unmanageable fast.</li>
+      <li><b>Taking the wrong eigenvalue.</b> You need the <b>largest</b> one. The others produce vectors with mixed signs, which cannot be centralities — negative "importance" is the tell.</li>
+      <li><b>Using A instead of A<sup>T</sup> on a directed graph.</b> That measures who you point at rather than who points at you — the exact reverse of prestige.</li>
+      <li><b>Running it on a disconnected graph.</b> Perron–Frobenius needs connectedness. Otherwise the whole vector can pile onto one component and hand every other node a flat zero.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="katz">
+  <div class="shead"><span class="wk">Week 3</span></div>
+  <h2>Katz centrality</h2>
+  <p class="gloss">Eigenvector centrality plus a flat allowance β, so no node is condemned to zero just because nobody points at it. Needs a second graph to show the problem it solves.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 12 364 196" role="img" aria-label="Directed graph on four pages with eigenvector centrality; P4 scores zero" preserveAspectRatio="xMidYMid meet"><defs><marker id="arev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="e" d="M128,57.4 Q200,25 268.5,57.0" marker-end="url(#arev)"/><path class="e" d="M272,82.6 Q200,115 131.5,83.0" marker-end="url(#arev)"/><path class="e" d="M290.0,92.0 L290.0,153.0" marker-end="url(#arev)"/><path class="e" d="M271.2,168.5 L133.0,84.1" marker-end="url(#arev)"/><path class="e" d="M110.0,158.0 L110.0,97.0" marker-end="url(#arev)"/><path class="e" d="M132.0,180.0 L263.0,180.0" marker-end="url(#arev)"/><circle class="n " cx="110" cy="70" r="22.0"/><circle class="gg" cx="110" cy="70" r="22.0" stroke-dasharray="100.91 138.23" transform="rotate(-90 110 70)"/><text class="lbl" x="110" y="69">P1</text><text class="val" x="110" y="81">0.73</text><circle class="n " cx="290" cy="70" r="22.0"/><circle class="gg" cx="290" cy="70" r="22.0" stroke-dasharray="77.41 138.23" transform="rotate(-90 290 70)"/><text class="lbl" x="290" y="69">P2</text><text class="val" x="290" y="81">0.56</text><circle class="n " cx="290" cy="180" r="22.0"/><circle class="gg" cx="290" cy="180" r="22.0" stroke-dasharray="53.91 138.23" transform="rotate(-90 290 180)"/><text class="lbl" x="290" y="179">P3</text><text class="val" x="290" y="191">0.39</text><circle class="n " cx="110" cy="180" r="22.0"/><text class="lbl" x="110" y="179">P4</text><text class="val" x="110" y="191">0.00</text></svg><figcaption>The directed test graph. P4 has two out-links and no in-links, so eigenvector centrality gives it exactly 0.00 — it is invisible, not merely unpopular.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">C<sub>Katz</sub> = α A<sup>T</sup> C<sub>Katz</sub> + β·1
+        <span class="note">closed form: C<sub>Katz</sub> = β (I − α A<sup>T</sup>)<sup>−1</sup> · 1</span></div>
+      <ul class="steps">
+        <li><span>λ<sub>max</sub>(A<sup>T</sup>)</span><span>1.3247</span></li>
+        <li class="hl"><span>so α must be &lt;</span><span>1/λ = 0.755</span></li>
+        <li><span>with α = 0.25, β = 1</span><span></span></li>
+      </ul>
+      <div class="scroll"><table>
+        <thead><tr><th>iter</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th></tr></thead>
+        <tbody>
+          <tr><td>t = 1</td><td>1.00</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+          <tr><td>t = 2</td><td>1.75</td><td>1.25</td><td>1.50</td><td>1.00</td></tr>
+          <tr><td>t = 3</td><td>1.94</td><td>1.44</td><td>1.56</td><td>1.00</td></tr>
+          <tr><td>settles</td><td class="win">2.03</td><td>1.51</td><td>1.63</td><td>1.00</td></tr>
+        </tbody>
+      </table></div>
+      <p class="gloss" style="margin-bottom:0">P4 now scores 1.00 = β instead of 0. And the ranking of P2 and P3 <b>flips</b> against eigenvector centrality: P3 gains from P4's free allowance, P2 does not.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Borrowing α = 0.85 from PageRank.</b> Katz needs α &lt; 1/λ<sub>max</sub>, which is <b>0.755</b> here. At 0.85 the matrix <code>I − αA<sup>T</sup></code> is no longer invertible in the useful sense and the iteration runs away to infinity. Compute λ<sub>max</sub> <i>first</i>, every time; there is no universal safe α.</li>
+      <li><b>Expecting β to change the ranking.</b> It cannot. β multiplies the whole vector, so it rescales every score identically. Only α changes who wins — tune α, report β.</li>
+      <li><b>Forgetting what the two extremes mean.</b> α = 0 gives every node exactly β (all structure discarded); α approaching 1/λ drowns β and reproduces eigenvector centrality. Katz is the dial between them.</li>
+      <li><b>Transposing the wrong way.</b> With A<sup>T</sup>, centrality flows <i>along</i> incoming edges. Use A and you rank pages by who they link to.</li>
+      <li><b>Reading absolute values as meaningful.</b> P1 = 2.03 is not "twice as central" in any absolute sense; it is 2.03 units on a scale you set with β.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="pagerank">
+  <div class="shead"><span class="wk">Week 3</span></div>
+  <h2>PageRank</h2>
+  <p class="gloss">Katz hands your full score to every node you point at. PageRank divides it by your out-degree first, so influence is spent, not copied.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 12 364 196" role="img" aria-label="The directed graph with PageRank scores normalised to sum to one" preserveAspectRatio="xMidYMid meet"><defs><marker id="arpr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="e" d="M128,57.4 Q200,25 268.5,57.0" marker-end="url(#arpr)"/><path class="e" d="M272,82.6 Q200,115 131.5,83.0" marker-end="url(#arpr)"/><path class="e" d="M290.0,92.0 L290.0,153.0" marker-end="url(#arpr)"/><path class="e" d="M271.2,168.5 L133.0,84.1" marker-end="url(#arpr)"/><path class="e" d="M110.0,158.0 L110.0,97.0" marker-end="url(#arpr)"/><path class="e" d="M132.0,180.0 L263.0,180.0" marker-end="url(#arpr)"/><circle class="n " cx="110" cy="70" r="22.0"/><circle class="gg" cx="110" cy="70" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 110 70)"/><text class="lbl" x="110" y="69">P1</text><text class="val" x="110" y="81">.387</text><circle class="n " cx="290" cy="70" r="22.0"/><circle class="gg" cx="290" cy="70" r="22.0" stroke-dasharray="130.73 138.23" transform="rotate(-90 290 70)"/><text class="lbl" x="290" y="69">P2</text><text class="val" x="290" y="81">.366</text><circle class="n " cx="290" cy="180" r="22.0"/><circle class="gg" cx="290" cy="180" r="22.0" stroke-dasharray="74.65 138.23" transform="rotate(-90 290 180)"/><text class="lbl" x="290" y="179">P3</text><text class="val" x="290" y="191">.209</text><circle class="n " cx="110" cy="180" r="22.0"/><circle class="gg" cx="110" cy="180" r="22.0" stroke-dasharray="13.57 138.23" transform="rotate(-90 110 180)"/><text class="lbl" x="110" y="179">P4</text><text class="val" x="110" y="191">.038</text></svg><figcaption>α = 0.85, normalised to sum to 1. P1 (in-degree 3) barely beats P2 (in-degree 1) — because P1's single out-link hands its entire score straight back to P2.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">C<sub>p</sub>(v<sub>i</sub>) = α Σ<sub>j</sub> A<sub>j,i</sub> <span class="frac"><span>C<sub>p</sub>(v<sub>j</sub>)</span><span>d<sub>j</sub><sup>out</sup></span></span> + β
+        <span class="note">closed form: C<sub>p</sub> = β (I − α A<sup>T</sup>D<sup>−1</sup>)<sup>−1</sup> · 1, with D = diag(d<sup>out</sup>)</span></div>
+      <div class="scroll"><table>
+        <thead><tr><th>iter</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th></tr></thead>
+        <tbody>
+          <tr><td>t = 1</td><td>.463</td><td class="lose">.250</td><td class="lose">.250</td><td>.038</td></tr>
+          <tr><td>t = 2</td><td class="lose">.372</td><td class="lose">.431</td><td>.160</td><td>.038</td></tr>
+          <tr><td>t = 4</td><td>.405</td><td>.354</td><td>.204</td><td>.038</td></tr>
+          <tr><td>settles</td><td class="win">.387</td><td>.366</td><td>.209</td><td>.038</td></tr>
+        </tbody>
+      </table></div>
+      <div class="formula">λ<sub>max</sub>(A<sup>T</sup>D<sup>−1</sup>) = 1 exactly
+        <span class="note">True for every graph with no dangling node, so the α &lt; 1/λ rule reduces to the familiar α &lt; 1. Undirected graphs: always λ = 1.</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Dangling nodes.</b> A node with out-degree 0 makes D<sup>−1</sup> undefined — a divide-by-zero that silently leaks rank out of the system. Real link graphs are full of them. Patch it before you run: send a dangling node's score to all nodes uniformly.</li>
+      <li><b>Dividing by in-degree.</b> The division is by the <i>sender's</i> out-degree, d<sub>j</sub><sup>out</sup>. Using in-degree inverts the whole idea.</li>
+      <li><b>Calling the closed-form output a probability.</b> With β = 1 the raw scores here are 10.32, 9.77, 5.58, 1.00 and sum to 26.67. Divide by the total before you say "38.7% of the surfer's time".</li>
+      <li><b>Stopping at two iterations.</b> Look at the table: at t = 1, P2 and P3 are tied; at t = 2, P2 is <i>ahead</i> of P1. Both rankings are wrong. The values oscillate before they settle.</li>
+      <li><b>Getting the matrix orientation backwards.</b> A<sup>T</sup>D<sup>−1</sup> must be <b>column</b>-stochastic — each column summing to 1. If your rows sum to 1 instead, you have transposed it and are ranking the wrong direction.</li>
+      <li><b>Treating α = 0.85 as fixed by theory.</b> It is Google's published convention. Lower α means more teleporting, flatter scores, faster convergence.</li>
+    </ul>
+    <p class="tell"><b>Sanity check:</b> after normalising, the scores must sum to 1 at <i>every</i> iteration. If the total drifts, you have a dangling node.</p>
+  </div>
+</section>
+
+<section id="betweenness">
+  <div class="shead"><span class="wk">Week 4</span></div>
+  <h2>Betweenness centrality</h2>
+  <p class="gloss">Not how many people you know — how many pairs of people must go through you. The broker's measure.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="The test graph with betweenness centrality; D scores highest at 9" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="54">A</text><text class="val" x="55" y="66">0</text><circle class="n " cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="154">B</text><text class="val" x="55" y="166">0</text><circle class="n " cx="150" cy="105" r="22.0"/><circle class="gg" cx="150" cy="105" r="22.0" stroke-dasharray="122.87 138.23" transform="rotate(-90 150 105)"/><text class="lbl" x="150" y="104">C</text><text class="val" x="150" y="116">8</text><circle class="n top" cx="250" cy="105" r="22.0"/><circle class="gg" cx="250" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 250 105)"/><text class="lbl" x="250" y="104">D</text><text class="val" x="250" y="116">9</text><circle class="n " cx="350" cy="105" r="22.0"/><circle class="gg" cx="350" cy="105" r="22.0" stroke-dasharray="122.87 138.23" transform="rotate(-90 350 105)"/><text class="lbl" x="350" y="104">E</text><text class="val" x="350" y="116">8</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="54">F</text><text class="val" x="445" y="66">0</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="154">G</text><text class="val" x="445" y="166">0</text></svg><figcaption>D scores 9 with only two edges. A, B, F and G lie on no shortest path between anyone and score exactly 0.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">C<sub>b</sub>(v<sub>i</sub>) = Σ<sub>s≠t≠v<sub>i</sub></sub> <span class="frac"><span>σ<sub>st</sub>(v<sub>i</sub>)</span><span>σ<sub>st</sub></span></span>
+        <span class="note">σ<sub>st</sub> = number of shortest s–t paths; σ<sub>st</sub>(v<sub>i</sub>) = how many of them pass through v<sub>i</sub>.</span></div>
+      <ul class="steps">
+        <li><span>D: pairs {A,B,C} × {E,F,G}</span><span>3 × 3 = 9</span></li>
+        <li><span>each has one shortest path</span><span>all through D</span></li>
+        <li class="hl"><span>C<sub>b</sub>(D)</span><span>9</span></li>
+        <li><span>C: pairs {A,B} × {D,E,F,G}</span><span>2 × 4 = 8</span></li>
+        <li class="hl"><span>C<sub>b</sub>(C)</span><span>8</span></li>
+      </ul>
+      <div class="formula">normalised: <span class="frac"><span>9</span><span>(n−1)(n−2)/2</span></span> = <span class="frac"><span>9</span><span>15</span></span> = 0.60</div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Counting every pair twice.</b> Undirected, the pair (A, E) is the same trip as (E, A). Count unordered pairs and divide by (n−1)(n−2)/2 = 15; count ordered pairs and divide by (n−1)(n−2) = 30. Mixing the two is why your answer is exactly double the book's.</li>
+      <li><b>Including the endpoints.</b> The condition is s ≠ t ≠ v<sub>i</sub>. A node is never "between" itself and someone else, so C never gets credit for the pair (C, D).</li>
+      <li><b>Ignoring path ties.</b> When two shortest paths run between s and t and your node is on one, it earns <b>½</b>, not 1. This graph has no ties, which makes it a poor place to practise the habit — but on the karate club it decides the ranking.</li>
+      <li><b>Counting all paths instead of shortest ones.</b> Only geodesics count. A longer route through a node earns nothing.</li>
+      <li><b>Expecting degree to predict it.</b> D has the minimum degree and the maximum betweenness. That gap <i>is</i> the finding — it names the node whose removal splits the network.</li>
+      <li><b>Disconnected graphs.</b> Pairs with no path between them contribute nothing; just skip them rather than treating the distance as infinite in the numerator.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="closeness">
+  <div class="shead"><span class="wk">Week 4</span></div>
+  <h2>Closeness centrality</h2>
+  <p class="gloss">How few hops it takes you to reach everyone else. The inverse of average distance, so bigger is closer.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="The test graph with closeness centrality; D leads at 0.60" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><circle class="gg" cx="55" cy="55" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 55 55)"/><text class="lbl" x="55" y="54">A</text><text class="val" x="55" y="66">0.40</text><circle class="n " cx="55" cy="155" r="22.0"/><circle class="gg" cx="55" cy="155" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 55 155)"/><text class="lbl" x="55" y="154">B</text><text class="val" x="55" y="166">0.40</text><circle class="n " cx="150" cy="105" r="22.0"/><circle class="gg" cx="150" cy="105" r="22.0" stroke-dasharray="126.71 138.23" transform="rotate(-90 150 105)"/><text class="lbl" x="150" y="104">C</text><text class="val" x="150" y="116">0.55</text><circle class="n top" cx="250" cy="105" r="22.0"/><circle class="gg" cx="250" cy="105" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 250 105)"/><text class="lbl" x="250" y="104">D</text><text class="val" x="250" y="116">0.60</text><circle class="n " cx="350" cy="105" r="22.0"/><circle class="gg" cx="350" cy="105" r="22.0" stroke-dasharray="126.71 138.23" transform="rotate(-90 350 105)"/><text class="lbl" x="350" y="104">E</text><text class="val" x="350" y="116">0.55</text><circle class="n " cx="445" cy="55" r="22.0"/><circle class="gg" cx="445" cy="55" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 445 55)"/><text class="lbl" x="445" y="54">F</text><text class="val" x="445" y="66">0.40</text><circle class="n " cx="445" cy="155" r="22.0"/><circle class="gg" cx="445" cy="155" r="22.0" stroke-dasharray="92.15 138.23" transform="rotate(-90 445 155)"/><text class="lbl" x="445" y="154">G</text><text class="val" x="445" y="166">0.40</text></svg><figcaption>D leads at 0.60, but the whole range runs only 0.40 to 0.60 — closeness compresses hard.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">C<sub>c</sub>(v<sub>i</sub>) = <span class="frac"><span>1</span><span>l̄<sub>v<sub>i</sub></sub></span></span>, &nbsp; l̄<sub>v<sub>i</sub></sub> = <span class="frac"><span>1</span><span>n−1</span></span> Σ<sub>j≠i</sub> l<sub>i,j</sub></div>
+      <div class="scroll"><table>
+        <thead><tr><th>node</th><th>Σ distances</th><th>average</th><th>C<sub>c</sub></th></tr></thead>
+        <tbody>
+          <tr><td>A, B, F, G</td><td>15</td><td>2.50</td><td class="lose">0.400</td></tr>
+          <tr><td>C, E</td><td>11</td><td>1.83</td><td>0.545</td></tr>
+          <tr><td>D</td><td>10</td><td>1.67</td><td class="win">0.600</td></tr>
+        </tbody>
+      </table></div>
+      <div class="formula">D: 2+2+1+1+2+2 = 10 over 6 others
+        <span class="note">hops from D to A, B, C, E, F, G respectively</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Reporting the average distance and calling it closeness.</b> Closeness is its <i>reciprocal</i>. D's average is 1.67 and its closeness is 0.60 — quote the wrong one and your ranking silently inverts.</li>
+      <li><b>Dividing by n.</b> There are n−1 = 6 other nodes. Including yourself adds a zero to the numerator and shrinks every score by the same wrong factor.</li>
+      <li><b>Disconnected graphs.</b> One unreachable node makes the sum infinite and the closeness 0 for everybody in that component — one isolate destroys the measure. Use harmonic closeness (the mean of 1/l instead of 1/mean l) when the graph may be disconnected.</li>
+      <li><b>Directed graphs.</b> Distance is not symmetric, so out-closeness (who you can reach) and in-closeness (who can reach you) are different measures with different rankings. Say which one you computed.</li>
+      <li><b>Over-reading small gaps.</b> The whole graph fits in 0.40–0.60. Closeness saturates because distances grow logarithmically in real networks — a 0.02 difference is usually noise.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="clustering">
+  <div class="shead"><span class="wk">Week 4</span></div>
+  <h2>Clustering coefficient &amp; transitivity</h2>
+  <p class="gloss">Are your friends friends with each other? Two standard answers to that question, and they do not agree.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="The test graph with local clustering coefficients; D scores zero" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n top" cx="55" cy="55" r="22.0"/><circle class="gg" cx="55" cy="55" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 55 55)"/><text class="lbl" x="55" y="54">A</text><text class="val" x="55" y="66">1.00</text><circle class="n top" cx="55" cy="155" r="22.0"/><circle class="gg" cx="55" cy="155" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 55 155)"/><text class="lbl" x="55" y="154">B</text><text class="val" x="55" y="166">1.00</text><circle class="n " cx="150" cy="105" r="22.0"/><circle class="gg" cx="150" cy="105" r="22.0" stroke-dasharray="45.62 138.23" transform="rotate(-90 150 105)"/><text class="lbl" x="150" y="104">C</text><text class="val" x="150" y="116">0.33</text><circle class="n " cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="104">D</text><text class="val" x="250" y="116">0.00</text><circle class="n " cx="350" cy="105" r="22.0"/><circle class="gg" cx="350" cy="105" r="22.0" stroke-dasharray="45.62 138.23" transform="rotate(-90 350 105)"/><text class="lbl" x="350" y="104">E</text><text class="val" x="350" y="116">0.33</text><circle class="n top" cx="445" cy="55" r="22.0"/><circle class="gg" cx="445" cy="55" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 445 55)"/><text class="lbl" x="445" y="54">F</text><text class="val" x="445" y="66">1.00</text><circle class="n top" cx="445" cy="155" r="22.0"/><circle class="gg" cx="445" cy="155" r="22.0" stroke-dasharray="138.23 138.23" transform="rotate(-90 445 155)"/><text class="lbl" x="445" y="154">G</text><text class="val" x="445" y="166">1.00</text></svg><figcaption>Local C. The four triangle corners score a perfect 1.00; D, whose two neighbours never met, scores 0.00.</figcaption></figure>
+    <div class="calc">
+      <h3>Both versions, same graph</h3>
+      <div class="formula"><b>local</b> &nbsp; C(v<sub>i</sub>) = <span class="frac"><span>connected pairs of neighbours</span><span>d<sub>i</sub>(d<sub>i</sub>−1)/2</span></span></div>
+      <ul class="steps">
+        <li><span>A, B, F, G</span><span>1/1 = 1.00</span></li>
+        <li><span>C, E</span><span>1/3 = 0.33</span></li>
+        <li><span>D (neighbours C, E unlinked)</span><span>0/1 = 0.00</span></li>
+        <li class="hl"><span>average local C</span><span>0.667</span></li>
+      </ul>
+      <div class="formula"><b>global</b> &nbsp; C = <span class="frac"><span>3 × triangles</span><span>pairs of neighbours</span></span> = <span class="frac"><span>3 × 2</span><span>11</span></span> = 0.545</div>
+      <p class="gloss" style="margin-bottom:0">Two triangles (ABC, EFG); Σ d<sub>i</sub>(d<sub>i</sub>−1)/2 = 11. <b>0.667 ≠ 0.545</b> on the same graph.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Assuming the two agree.</b> Average local C (0.667) weights every node equally; global C (0.545) weights every <i>triangle</i> equally, so hubs dominate it. In NetworkX they are <code>average_clustering</code> and <code>transitivity</code>. Name which one you used.</li>
+      <li><b>The 3× versus 6× confusion.</b> Both are right: 3 × triangles over <i>unordered</i> neighbour pairs (11 here), or 6 × triangles over <i>ordered</i> length-2 paths (22 here). Both give 0.545. Mixing a 6 with an unordered denominator gives 1.09 — and C can never exceed 1.</li>
+      <li><b>Degree-1 nodes.</b> The denominator d(d−1)/2 is zero, so local C is undefined. Most software quietly records 0, which drags the average down. In a star graph that is the difference between "no clustering" and "not applicable".</li>
+      <li><b>Writing d<sub>i</sub><sup>2</sup> as the denominator.</b> It is the number of <i>pairs</i>, d<sub>i</sub>(d<sub>i</sub>−1)/2 — 3 for C, not 9.</li>
+      <li><b>Running it on a directed graph as-is.</b> The formula above assumes undirected. Decide whether to symmetrise first or use a directed variant; do not just feed it a directed adjacency matrix.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="reciprocity">
+  <div class="shead"><span class="wk">Week 4</span></div>
+  <h2>Reciprocity</h2>
+  <p class="gloss">Of the arrows you send, how many come back? Transitivity's two-node cousin, and directed-only.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="18 12 364 196" role="img" aria-label="The directed graph with the single mutual link between P1 and P2 highlighted" preserveAspectRatio="xMidYMid meet"><defs><marker id="arrc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="e-hi" d="M128,57.4 Q200,25 268.5,57.0" marker-end="url(#arrc)"/><path class="e-hi" d="M272,82.6 Q200,115 131.5,83.0" marker-end="url(#arrc)"/><path class="e" d="M290.0,92.0 L290.0,153.0" marker-end="url(#arrc)"/><path class="e" d="M271.2,168.5 L133.0,84.1" marker-end="url(#arrc)"/><path class="e" d="M110.0,158.0 L110.0,97.0" marker-end="url(#arrc)"/><path class="e" d="M132.0,180.0 L263.0,180.0" marker-end="url(#arrc)"/><circle class="n " cx="110" cy="70" r="22.0"/><text class="lbl" x="110" y="74.5">P1</text><circle class="n " cx="290" cy="70" r="22.0"/><text class="lbl" x="290" y="74.5">P2</text><circle class="n " cx="290" cy="180" r="22.0"/><text class="lbl" x="290" y="184.5">P3</text><circle class="n " cx="110" cy="180" r="22.0"/><text class="lbl" x="110" y="184.5">P4</text></svg><figcaption>Only one of the six directed edges is reciprocated: P1 ⇄ P2. Everything else is one-way.</figcaption></figure>
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">R = <span class="frac"><span>Σ<sub>i&lt;j</sub> A<sub>i,j</sub>A<sub>j,i</sub></span><span>|E|/2</span></span> = <span class="frac"><span>1</span><span>m</span></span> Tr(A<sup>2</sup>)</div>
+      <ul class="steps">
+        <li><span>mutual pairs (P1, P2)</span><span>1</span></li>
+        <li><span>|E|/2 = 6/2</span><span>3</span></li>
+        <li><span>Tr(A<sup>2</sup>)</span><span>2</span></li>
+        <li class="hl"><span>R = 1/3 = 2/6</span><span>0.333</span></li>
+      </ul>
+      <div class="formula">expected R under randomness = density = <span class="frac"><span>6</span><span>4×3</span></span> = 0.50
+        <span class="note">0.333 &lt; 0.50 — these pages reciprocate <i>less</i> than chance would predict.</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>The two formulas look like they disagree.</b> They don't. Σ<sub>i&lt;j</sub> counts each mutual pair once (1) over |E|/2 = 3; Tr(A²) counts it from both ends (2) over m = 6. Both give ⅓. Trouble starts when you pair one numerator with the other denominator and land on 0.167 or 0.667.</li>
+      <li><b>Calling m the number of node pairs.</b> Here m = 6 directed edges, not 12 possible ones and not 3 undirected ones.</li>
+      <li><b>Computing it on an undirected graph.</b> Every undirected edge is trivially mutual, so R = 1 and the measure says nothing. It only has meaning when direction is real.</li>
+      <li><b>Reading a high R as strong mutuality.</b> Dense graphs reciprocate by accident. Compare against the density baseline — 0.333 against an expected 0.50 means this graph is <i>less</i> reciprocal than random, the opposite of the naive read.</li>
+      <li><b>Forgetting to zero the diagonal.</b> Self-loops land on the diagonal of A² and inflate the trace.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="similarity">
+  <div class="shead"><span class="wk">Week 4</span></div>
+  <h2>Similarity — Jaccard, cosine, Pearson</h2>
+  <p class="gloss">Two nodes are alike if they keep the same company. Structural equivalence compares neighbourhoods, not positions.</p>
+  <div class="duo">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Nodes A and B highlighted with their shared neighbour C" preserveAspectRatio="xMidYMid meet"><line class="e-dim" x1="55" y1="55" x2="55" y2="155"/><line class="e-hi" x1="55" y1="55" x2="150" y2="105"/><line class="e-hi" x1="55" y1="155" x2="150" y2="105"/><line class="e-dim" x1="150" y1="105" x2="250" y2="105"/><line class="e-dim" x1="250" y1="105" x2="350" y2="105"/><line class="e-dim" x1="350" y1="105" x2="445" y2="55"/><line class="e-dim" x1="350" y1="105" x2="445" y2="155"/><line class="e-dim" x1="445" y1="55" x2="445" y2="155"/><circle class="n top" cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n top" cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n alt" cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n " cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n " cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text></svg><figcaption>A and B: triangle partners, one shared neighbour (C).</figcaption></figure>
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Nodes A and D highlighted with their shared neighbour C" preserveAspectRatio="xMidYMid meet"><line class="e-dim" x1="55" y1="55" x2="55" y2="155"/><line class="e-hi" x1="55" y1="55" x2="150" y2="105"/><line class="e-dim" x1="55" y1="155" x2="150" y2="105"/><line class="e-hi" x1="150" y1="105" x2="250" y2="105"/><line class="e-dim" x1="250" y1="105" x2="350" y2="105"/><line class="e-dim" x1="350" y1="105" x2="445" y2="55"/><line class="e-dim" x1="350" y1="105" x2="445" y2="155"/><line class="e-dim" x1="445" y1="55" x2="445" y2="155"/><circle class="n top" cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n " cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n alt" cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n top" cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n " cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text></svg><figcaption>A and D: opposite sides of the bridge, one shared neighbour (C).</figcaption></figure>
+  </div>
+  <div class="split" style="margin-top:22px">
+    <div class="calc">
+      <h3>Three metrics on the same pairs</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>pair</th><th>∩</th><th>∪</th><th>Jaccard</th><th>cosine</th><th>Pearson</th></tr></thead>
+        <tbody>
+          <tr><td>A, B</td><td>1</td><td>3</td><td>0.333</td><td>0.500</td><td>0.300</td></tr>
+          <tr><td>A, D</td><td>1</td><td>3</td><td>0.333</td><td>0.500</td><td>0.300</td></tr>
+          <tr><td>C, E</td><td>1</td><td>5</td><td>0.200</td><td>0.333</td><td class="lose">−0.167</td></tr>
+          <tr><td>A, F</td><td>0</td><td>4</td><td>0.000</td><td>0.000</td><td class="lose">−0.400</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="calc">
+      <h3>How they are calculated</h3>
+      <div class="formula">σ<sub>Jaccard</sub> = <span class="frac"><span>|N(v<sub>i</sub>) ∩ N(v<sub>j</sub>)|</span><span>|N(v<sub>i</sub>) ∪ N(v<sub>j</sub>)|</span></span> = <span class="frac"><span>1</span><span>3</span></span></div>
+      <div class="formula">σ<sub>cosine</sub> = <span class="frac"><span>|N(v<sub>i</sub>) ∩ N(v<sub>j</sub>)|</span><span>√(|N(v<sub>i</sub>)|·|N(v<sub>j</sub>)|)</span></span> = <span class="frac"><span>1</span><span>√4</span></span> = 0.5</div>
+      <div class="formula">σ<sub>Pearson</sub> = correlation of rows A<sub>i</sub> and A<sub>j</sub>
+        <span class="note">N(A) = {B, C}, N(B) = {A, C} → ∩ = {C}, ∪ = {A, B, C}</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Believing a single number.</b> A–B (triangle partners) and A–D (facing each other across the bridge) get <i>identical</i> scores on all three metrics. Neighbourhood overlap cannot tell a cohesive pair from a structurally analogous one — that is a limitation of the definition, not a mistake in your arithmetic.</li>
+      <li><b>Forgetting that adjacency doesn't count.</b> N(v) excludes v itself, so two nodes joined by an edge but sharing no neighbour score <b>0</b>. If that reads wrong for your application, add each node to its own neighbourhood — and say so.</li>
+      <li><b>Comparing a Jaccard against a cosine.</b> The same overlap is 0.333 or 0.500 depending only on which formula you used. Cosine always reads higher because it doesn't penalise the union.</li>
+      <li><b>Treating a negative Pearson as zero similarity.</b> C and E score −0.167: they avoid each other's neighbourhoods <i>more</i> than chance predicts. Jaccard and cosine cannot express that; they both floor at 0.</li>
+      <li><b>Inconsistent diagonals.</b> Pearson over adjacency rows includes A<sub>ii</sub> = 0. Whether you keep, drop or set those to 1 changes the number — fix one convention across every pair you compare.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="modularity">
+  <div class="shead"><span class="wk">Week 5</span></div>
+  <h2>Modularity</h2>
+  <p class="gloss">How many more edges fall inside your proposed communities than would fall there by chance, given the same degrees. The score every community-detection method is trying to maximise.</p>
+  <div class="duo">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Test graph split into A,B,C and D,E,F,G with the cut edge marked" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e-cut" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n c1" cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n c1" cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n c1" cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n c2" cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n c2" cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n c2" cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n c2" cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text></svg><figcaption>Split 1: {A,B,C} | {D,E,F,G} — Q = 0.3672</figcaption></figure>
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Test graph split into A,B,C,D and E,F,G with the cut edge marked" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e" x1="150" y1="105" x2="250" y2="105"/><line class="e-cut" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n c1" cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n c1" cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n c1" cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n c1" cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n c2" cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n c2" cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n c2" cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text></svg><figcaption>Split 2: {A,B,C,D} | {E,F,G} — Q = 0.3672, exactly the same</figcaption></figure>
+  </div>
+  <div class="split" style="margin-top:22px">
+    <div class="calc">
+      <h3>How it is calculated</h3>
+      <div class="formula">Q = <span class="frac"><span>1</span><span>2m</span></span> Σ<sub>i</sub>Σ<sub>j</sub> ( A<sub>ij</sub> − <span class="frac"><span>d<sub>i</sub>d<sub>j</sub></span><span>2m</span></span> ) δ(P<sub>i</sub>, P<sub>j</sub>)
+        <span class="note">per community: Q<sub>c</sub> = (internal edges / m) − (Σ degrees / 2m)²</span></div>
+      <ul class="steps">
+        <li><span>{A,B,C}: 3 internal, Σd = 7</span><span>3/8 − (7/16)²</span></li>
+        <li><span></span><span>= 0.3750 − 0.1914</span></li>
+        <li><span>{D,E,F,G}: 4 internal, Σd = 9</span><span>4/8 − (9/16)²</span></li>
+        <li><span></span><span>= 0.5000 − 0.3164</span></li>
+        <li class="hl"><span>Q</span><span>0.3672</span></li>
+      </ul>
+    </div>
+    <div class="calc">
+      <h3>Every partition of this graph</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>partition</th><th>Q</th></tr></thead>
+        <tbody>
+          <tr><td>{ABC} | {DEFG}</td><td class="win">0.3672</td></tr>
+          <tr><td>{ABCD} | {EFG}</td><td class="win">0.3672</td></tr>
+          <tr><td>{ABC} | {D} | {EFG}</td><td>0.3516</td></tr>
+          <tr><td>everything in one</td><td class="lose">0.0000</td></tr>
+          <tr><td>every node alone</td><td class="lose">−0.1484</td></tr>
+        </tbody>
+      </table></div>
+      <p class="gloss" style="margin-bottom:0">Two <i>different</i> partitions tie for the maximum, and they disagree about where D belongs. Nothing in the objective function can break that tie.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Treating the maximum as "the" community structure.</b> This is modularity's <i>degeneracy</i> problem, visible even at n = 7: many very different partitions sit at or near the peak. Report the ambiguity instead of the winner.</li>
+      <li><b>Being impressed by Q &gt; 0.</b> Putting the whole graph in one community always gives exactly 0, so beating zero is close to free. Real community structure usually means Q above roughly 0.3.</li>
+      <li><b>Comparing Q across graphs.</b> Q depends on size and density, so "our network scored 0.41, theirs 0.38" is not a claim about anything.</li>
+      <li><b>The resolution limit.</b> Modularity cannot see communities smaller than about √(2m) edges — it will merge two genuinely separate small groups because splitting them <i>lowers</i> Q. Bigger graph, worse problem.</li>
+      <li><b>Losing a factor of 2.</b> The double sum runs over ordered pairs, so Σ<sub>ij</sub>A<sub>ij</sub> = 2m = 16, not 8. Checking that Q comes out 0 for the one-community partition catches the error instantly.</li>
+      <li><b>Summing over all pairs.</b> δ(P<sub>i</sub>, P<sub>j</sub>) kills every cross-community term — you only ever add up terms <i>inside</i> a community.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="louvain">
+  <div class="shead"><span class="wk">Week 5</span></div>
+  <h2>The Louvain method</h2>
+  <p class="gloss">Modularity maximisation is NP-hard, so Louvain settles for greedy: move each node to whichever neighbouring community gains most, collapse the result, repeat.</p>
+  <div class="split">
+    <figure class="dg">
+      <svg viewBox="0 0 340 150" role="img" aria-label="Phase 2 aggregation: two supernodes with self-loops of weight 3 and 4, joined by an edge of weight 1" preserveAspectRatio="xMidYMid meet">
+        <path class="e" d="M80,51 C60,5 130,5 110,51"/>
+        <path class="e" d="M230,51 C210,5 280,5 260,51"/>
+        <line class="e" x1="129" y1="80" x2="211" y2="80"/>
+        <circle class="n c1" cx="95" cy="80" r="34"/><circle class="n c2" cx="245" cy="80" r="34"/>
+        <text class="lbl" x="95" y="85">ABC</text><text class="lbl" x="245" y="85">DEFG</text>
+        <rect class="wbg" x="82" y="18" width="26" height="16" rx="4"/><text class="ew" x="95" y="30">3</text>
+        <rect class="wbg" x="232" y="18" width="26" height="16" rx="4"/><text class="ew" x="245" y="30">4</text>
+        <rect class="wbg" x="157" y="72" width="26" height="16" rx="4"/><text class="ew" x="170" y="84">1</text>
+      </svg>
+      <figcaption>Phase 2. Each community becomes one node; its internal edges become a <b>self-loop</b> carrying that weight. Phase 1 then runs again on this two-node graph.</figcaption>
+    </figure>
+    <div class="calc">
+      <h3>One move, computed in full</h3>
+      <div class="formula">ΔQ = [ <span class="frac"><span>Σ<sub>in</sub>+2k<sub>i,in</sub></span><span>2m</span></span> − (<span class="frac"><span>Σ<sub>tot</sub>+k<sub>i</sub></span><span>2m</span></span>)² ] − [ <span class="frac"><span>Σ<sub>in</sub></span><span>2m</span></span> − (<span class="frac"><span>Σ<sub>tot</sub></span><span>2m</span></span>)² − (<span class="frac"><span>k<sub>i</sub></span><span>2m</span></span>)² ]</div>
+      <p class="gloss">Start: all seven nodes alone, Q = −0.1484. Move A into {B}: k<sub>i</sub> = d<sub>A</sub> = 2, k<sub>i,in</sub> = 1, Σ<sub>in</sub> = 0, Σ<sub>tot</sub> = d<sub>B</sub> = 2, 2m = 16.</p>
+      <ul class="steps">
+        <li><span>(0+2)/16 − (4/16)²</span><span>0.1250 − 0.0625</span></li>
+        <li><span>minus [0 − (2/16)² − (2/16)²]</span><span>+ 0.0313</span></li>
+        <li class="hl"><span>ΔQ for A → {B}</span><span>+0.0938</span></li>
+        <li><span>ΔQ for A → {C}</span><span>+0.0781</span></li>
+        <li><span>new Q after the move</span><span>−0.0547 ✓</span></li>
+      </ul>
+      <p class="gloss" style="margin-bottom:0">A joins B, not C — the larger gain wins. Direct recomputation of Q agrees with the formula to the last digit, which is how you verify your ΔQ implementation.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Computing ΔQ against stale communities.</b> Σ<sub>in</sub> and Σ<sub>tot</sub> change after <i>every</i> accepted move. Evaluating a whole sweep against the starting assignment is the single most common Louvain bug.</li>
+      <li><b>Forgetting to remove the node first.</b> The real gain is "take i out of its current community, then insert it into the candidate". Skipping the removal makes a node look good in a community it is already in and freezes the algorithm early.</li>
+      <li><b>Dropping self-loops in Phase 2.</b> The self-loop <i>is</i> the community's internal density. Lose it and the second pass sees a sparse graph and merges everything.</li>
+      <li><b>Expecting one canonical answer.</b> Louvain is order-dependent: a different node ordering can end at a different partition, usually with near-identical Q. Fix a seed, and run it several times before you name communities.</li>
+      <li><b>Stopping after Phase 1.</b> One pass is a local optimum of one level. The method is defined by repeating both phases until Q stops improving — and the hierarchy it builds along the way is often the useful output.</li>
+      <li><b>Trusting the communities to be connected.</b> Louvain can return a community that is internally disconnected. If that matters, use the Leiden algorithm, which guarantees it cannot happen.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gn">
+  <div class="shead"><span class="wk">Week 5</span></div>
+  <h2>Girvan–Newman</h2>
+  <p class="gloss">The opposite strategy: instead of merging nodes, cut the edges that carry the most traffic between groups, and watch the network fall apart into communities.</p>
+  <div class="duo">
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Test graph with edge betweenness on every edge; C-D and D-E tie at 12" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e-hi" x1="150" y1="105" x2="250" y2="105"/><line class="e-hi" x1="250" y1="105" x2="350" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n " cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n " cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n " cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n " cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text><rect class="wbg" x="47.9" y="97.0" width="14.2" height="16" rx="4"/><text class="ew" x="55.0" y="109.0">1</text><rect class="wbg" x="95.4" y="72.0" width="14.2" height="16" rx="4"/><text class="ew" x="102.5" y="84.0">5</text><rect class="wbg" x="95.4" y="122.0" width="14.2" height="16" rx="4"/><text class="ew" x="102.5" y="134.0">5</text><rect class="wbg" x="189.3" y="97.0" width="21.4" height="16" rx="4"/><text class="ew" x="200.0" y="109.0">12</text><rect class="wbg" x="289.3" y="97.0" width="21.4" height="16" rx="4"/><text class="ew" x="300.0" y="109.0">12</text><rect class="wbg" x="390.4" y="72.0" width="14.2" height="16" rx="4"/><text class="ew" x="397.5" y="84.0">5</text><rect class="wbg" x="390.4" y="122.0" width="14.2" height="16" rx="4"/><text class="ew" x="397.5" y="134.0">5</text><rect class="wbg" x="437.9" y="97.0" width="14.2" height="16" rx="4"/><text class="ew" x="445.0" y="109.0">1</text></svg><figcaption>Step 1. Edge betweenness on all eight edges. C–D and D–E tie at 12 — remove one, say D–E.</figcaption></figure>
+    <figure class="dg"><svg viewBox="18 18 464 174" role="img" aria-label="Test graph after removing D-E, with recalculated edge betweenness" preserveAspectRatio="xMidYMid meet"><line class="e" x1="55" y1="55" x2="55" y2="155"/><line class="e" x1="55" y1="55" x2="150" y2="105"/><line class="e" x1="55" y1="155" x2="150" y2="105"/><line class="e-hi" x1="150" y1="105" x2="250" y2="105"/><line class="e" x1="350" y1="105" x2="445" y2="55"/><line class="e" x1="350" y1="105" x2="445" y2="155"/><line class="e" x1="445" y1="55" x2="445" y2="155"/><circle class="n " cx="55" cy="55" r="22.0"/><text class="lbl" x="55" y="59.5">A</text><circle class="n " cx="55" cy="155" r="22.0"/><text class="lbl" x="55" y="159.5">B</text><circle class="n " cx="150" cy="105" r="22.0"/><text class="lbl" x="150" y="109.5">C</text><circle class="n " cx="250" cy="105" r="22.0"/><text class="lbl" x="250" y="109.5">D</text><circle class="n " cx="350" cy="105" r="22.0"/><text class="lbl" x="350" y="109.5">E</text><circle class="n " cx="445" cy="55" r="22.0"/><text class="lbl" x="445" y="59.5">F</text><circle class="n " cx="445" cy="155" r="22.0"/><text class="lbl" x="445" y="159.5">G</text><rect class="wbg" x="47.9" y="97.0" width="14.2" height="16" rx="4"/><text class="ew" x="55.0" y="109.0">1</text><rect class="wbg" x="95.4" y="72.0" width="14.2" height="16" rx="4"/><text class="ew" x="102.5" y="84.0">2</text><rect class="wbg" x="95.4" y="122.0" width="14.2" height="16" rx="4"/><text class="ew" x="102.5" y="134.0">2</text><rect class="wbg" x="192.9" y="97.0" width="14.2" height="16" rx="4"/><text class="ew" x="200.0" y="109.0">3</text><rect class="wbg" x="390.4" y="72.0" width="14.2" height="16" rx="4"/><text class="ew" x="397.5" y="84.0">1</text><rect class="wbg" x="390.4" y="122.0" width="14.2" height="16" rx="4"/><text class="ew" x="397.5" y="134.0">1</text><rect class="wbg" x="437.9" y="97.0" width="14.2" height="16" rx="4"/><text class="ew" x="445.0" y="109.0">1</text></svg><figcaption>Step 2, recalculated. C–D has collapsed from 12 to 3. The graph is already split into {A,B,C,D} and {E,F,G}.</figcaption></figure>
+  </div>
+  <div class="split" style="margin-top:22px">
+    <div class="calc">
+      <h3>The loop</h3>
+      <ul class="steps">
+        <li><span>1. edge betweenness, all edges</span><span>12, 12, 5, 5, 5, 5, 1, 1</span></li>
+        <li><span>2. remove the maximum</span><span>D–E</span></li>
+        <li class="hl"><span>3. recalculate</span><span>C–D: 12 → 3</span></li>
+        <li><span>4. repeat</span><span>until no edges left</span></li>
+      </ul>
+      <p class="gloss" style="margin-bottom:0">Removing D–E splits the graph into {A,B,C,D} and {E,F,G} — one of the two tied maximum-modularity partitions. Break the tie the other way and you get the other one.</p>
+    </div>
+    <div class="calc">
+      <h3>Why it costs so much</h3>
+      <div class="formula">O(m²n) overall
+        <span class="note">Every single removal triggers a fresh all-pairs shortest-path computation across the whole graph.</span></div>
+      <p class="gloss" style="margin-bottom:0">Perfectly practical on a 34-node karate club, hopeless past a few thousand edges. That cost is exactly why Louvain exists.</p>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Not recalculating after every removal.</b> The whole algorithm lives in this step. C–D scored 12 while D–E existed and 3 the moment it was gone. Remove the top-<i>k</i> edges from the original ranking in one go and you are running a different, wrong algorithm.</li>
+      <li><b>Using node betweenness.</b> Girvan–Newman ranks <b>edges</b>. The two measures share a name and a formula shape and nothing else.</li>
+      <li><b>Expecting no ties.</b> Symmetric graphs produce them constantly — two edges at 12 here. The tie-break is arbitrary and it changes the dendrogram, so record which edge you cut.</li>
+      <li><b>Looking for a stopping rule inside the algorithm.</b> There isn't one: it runs until the graph has no edges. <i>You</i> choose the level to cut the dendrogram at, usually the one with the highest modularity.</li>
+      <li><b>Expecting balanced splits.</b> Keep going and step 3 strips A–B, leaving A and B still attached through C. Late cuts produce singletons and slivers, not communities.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="tfidf">
+  <div class="shead"><span class="wk">Week 6</span></div>
+  <h2>TF-IDF and content-based recommendation</h2>
+  <p class="gloss">Turn each item's description into a weighted vector, turn the user into a vector of the same shape, and rank by the angle between them.</p>
+  <div class="split">
+    <figure class="dg"><svg viewBox="20 5 400 260" role="img" aria-label="A user profile node linked to four item nodes, with cosine similarity on each link" preserveAspectRatio="xMidYMid meet"><line class="e-hi" x1="92.7" y1="102.3" x2="267.3" y2="42.7"/><rect class="wbg" x="160.0" y="64.5" width="40.0" height="16" rx="4"/><text class="ew" x="180.0" y="76.5">liked</text><line class="e-hi" x1="94.0" y1="108.9" x2="266.0" y2="101.1"/><rect class="wbg" x="160.0" y="97.0" width="40.0" height="16" rx="4"/><text class="ew" x="180.0" y="109.0">.540</text><line class="e-dim" x1="93.3" y1="115.8" x2="266.7" y2="159.2"/><rect class="wbg" x="160.0" y="129.5" width="40.0" height="16" rx="4"/><text class="ew" x="180.0" y="141.5">.000</text><line class="e" x1="91.1" y1="121.5" x2="268.9" y2="218.5"/><rect class="wbg" x="160.0" y="162.0" width="40.0" height="16" rx="4"/><text class="ew" x="180.0" y="174.0">.350</text><circle class="n alt" cx="70" cy="110" r="22.0"/><text class="lbl" x="70" y="114.5">u</text><text class="sidec" x="70" y="160">user profile</text><circle class="n " cx="290" cy="35" r="22.0"/><text class="lbl" x="290" y="39.5">d1</text><text class="side" x="320" y="39">mining</text><circle class="n top" cx="290" cy="100" r="22.0"/><text class="lbl" x="290" y="104.5">d2</text><text class="side" x="320" y="104">data</text><circle class="n " cx="290" cy="165" r="22.0"/><text class="lbl" x="290" y="169.5">d3</text><text class="side" x="320" y="169">market</text><circle class="n " cx="290" cy="230" r="22.0"/><text class="lbl" x="290" y="234.5">d4</text><text class="side" x="320" y="234">network</text></svg><figcaption>The user liked d1. Cosine against the profile ranks d2 first; d3 shares no distinctive term and scores a flat zero.</figcaption></figure>
+    <div class="calc">
+      <h3>The corpus</h3>
+      <div class="formula">w<sub>j,i</sub> = tf<sub>j,i</sub> × idf<sub>j</sub>, &nbsp; idf<sub>j</sub> = log<sub>2</sub> <span class="frac"><span>|D|</span><span>docs containing j</span></span></div>
+      <div class="scroll"><table>
+        <thead><tr><th>term</th><th>in docs</th><th>idf = log₂(4/df)</th></tr></thead>
+        <tbody>
+          <tr><td>social</td><td>3</td><td class="lose">0.415</td></tr>
+          <tr><td>media, mining, data</td><td>2</td><td>1.000</td></tr>
+          <tr><td>financial, market, network</td><td>1</td><td class="win">2.000</td></tr>
+        </tbody>
+      </table></div>
+      <p class="gloss">d1 <i>social media mining</i> · d2 <i>social media data</i> · d3 <i>financial market data</i> · d4 <i>social network mining</i></p>
+      <ul class="steps">
+        <li><span>cos(d1, d2)</span><span>0.540</span></li>
+        <li><span>cos(d1, d4)</span><span>0.350</span></li>
+        <li><span>cos(d1, d3)</span><span>0.000</span></li>
+        <li class="hl"><span>recommend</span><span>d2, then d4</span></li>
+      </ul>
+      <div class="formula">without idf, cos(d1,d2) = cos(d1,d4) = 0.667
+        <span class="note">Raw term presence cannot separate them at all. Weighting by rarity is what produces a ranking.</span></div>
+    </div>
+  </div>
+  <div class="traps">
+    <h3>First-timer traps</h3>
+    <ul>
+      <li><b>Expecting the rarest shared term to win.</b> d4 shares <i>mining</i> (idf 1.0) yet loses to d2. Its extra term <i>network</i> (idf 2.0) lengthens d4's vector from 1.47 to 2.27, and cosine divides by that length. Cosine rewards <i>proportional</i> overlap, not absolute overlap — items with lots of extra distinctive content are penalised.</li>
+      <li><b>Changing the log base and expecting the same numbers.</b> The course uses log₂. Natural log or log₁₀ rescales every idf by a constant — which leaves the <i>ranking</i> identical but makes every value you report different from the book's.</li>
+      <li><b>Terms that appear in every document.</b> idf = log(|D|/|D|) = <b>0</b>, so the term vanishes completely. If your vocabulary is mostly common words, every similarity collapses to zero and the bug looks like a data problem.</li>
+      <li><b>Computing idf from the wrong corpus.</b> df counts documents across the <i>whole</i> collection, not just the items one user touched. Recomputing idf per user makes scores incomparable between users.</li>
+      <li><b>Skipping the length normalisation.</b> Drop the denominator and you are ranking by dot product, which simply prefers long descriptions.</li>
+      <li><b>Sanity bounds.</b> With non-negative TF-IDF vectors, cosine lies in [0, 1]. A negative value or anything above 1 is an arithmetic error, every time.</li>
+      <li><b>Mistaking a zero for "dissimilar".</b> d3 scores 0.000 because it shares <i>no</i> term with the profile — not because it was judged and rejected. Content-based filtering can never recommend it, however many similar users loved it. That is the cold-start-friendly, novelty-poor trade-off in one number.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p>Built on the Weeks 1–6 slide decks and datasets in this repository. Every figure in this page is computed from the graph drawn beside it, not estimated — the test graph is <code>A–B, A–C, B–C, C–D, D–E, E–F, E–G, F–G</code>, the directed graph is <code>P1→P2, P2→P1, P2→P3, P3→P1, P4→P1, P4→P3</code>.</p>
+</footer>
+
+</div>
