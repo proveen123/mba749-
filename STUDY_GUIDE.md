@@ -1,8 +1,8 @@
-# MBA749 — Social Media Mining: Study Guide (Weeks 1–5)
+# MBA749 — Social Media Mining: Study Guide (Weeks 1–6)
 
 Course: **Social Media Mining (SMM)**, IIT Kanpur MBA749. Textbook reference: *socialmediamining.info*.
 
-This guide consolidates the slide decks and datasets uploaded for Weeks 1–5 into one set of study notes: graph fundamentals → spanning trees → centrality measures → similarity/clustering → community detection.
+This guide consolidates the slide decks and datasets uploaded for Weeks 1–6 into one set of study notes: graph fundamentals → spanning trees → centrality measures → similarity/clustering → community detection → recommender systems.
 
 ## Table of Contents
 1. [Week 1 — Graph Essentials](#week-1-graph-essentials)
@@ -10,7 +10,8 @@ This guide consolidates the slide decks and datasets uploaded for Weeks 1–5 in
 3. [Week 3 — Centrality Measures I (Degree, Eigenvector, Katz, PageRank)](#week-3-centrality-measures-i)
 4. [Week 4 — Centrality Measures II (Betweenness, Closeness, Cliques) & Similarity](#week-4-centrality-measures-ii-similarity)
 5. [Week 5 — Community Detection & Louvain Modularity](#week-5-community-detection)
-6. [Dataset Index](#dataset-index)
+6. [Week 6 — Recommendation in Social Media (Content-Based Filtering)](#week-6-recommendation-in-social-media)
+7. [Dataset Index](#dataset-index)
 
 ---
 
@@ -67,7 +68,7 @@ Continuation of Chapter 2.
 
 ### Shortest paths & diameter
 - **Shortest path** length between $v_i,v_j$ is denoted $l_{i,j}$.
-- **n-hop neighborhood**: generalizes neighborhood using shortest-path distance $\le n$.
+- **n-hop neighborhood**: generalizes neighborhood using shortest-path distance $\leq n$.
 - **Diameter**: the length of the longest shortest path between any node pair in the graph.
 
 ### Adjacency matrix & path counting
@@ -300,6 +301,108 @@ Builds a full hierarchy rather than one flat partition:
 
 ---
 
+## Week 6 — Recommendation in Social Media
+
+**Chapter 9 (Part 1) of the textbook: "Recommendation in Social Media."** This part covers content-based filtering; collaborative filtering is Part 2 (not yet uploaded).
+
+### When does the recommendation problem occur?
+Users face **information overload**: many choices, no obvious advantage between them, and not enough time/knowledge to evaluate every option (but they don't want to miss out on good stuff). Traditional fixes — asking friends, trusted third parties, hiring experts, searching, or "following the crowd" (top-$n$/best-seller lists) — can be automated with a **recommender algorithm**, i.e. a **recommender system**.
+
+**Goal of recommendation:** produce a short list of items that fits a user's interests.
+
+**Recommendation vs. search:** a search engine returns results matching an explicit query, ranked by relevance to that query — the same query gives the same ranked list to everyone. A recommender's results are **personalized to the user**, without requiring an explicit query.
+
+### Main idea
+Use historical data — a user's own past preferences, or similar users' past preferences — to predict future likes, on the assumption that preferences are stable and change only smoothly over time.
+
+Formally, a recommender system takes a set of users $U$ and a set of items $I$ and learns a function
+$$f: U \times I \to \mathbb{R}$$
+scoring how much a given user would like a given item.
+
+### Challenges of recommender systems
+- **Cold-start problem:** a new user (or item) has no history, so there's nothing to infer preferences from.
+- **Data sparsity:** historical/prior information is insufficient *system-wide* (not specific to one user/item, unlike cold-start).
+- **Attacks:** adversaries push ratings up by creating fake users.
+- **Privacy:** using one user's private info to generate recommendations for others.
+- **Explanation:** recommendations are often given with no explanation of *why* an item was recommended — motivates **explainable recommender systems**, one facet of "Trustworthy AI" alongside fairness, privacy, robustness, accountability, and safety.
+
+### Two classical approaches
+1. **Content-based algorithms** — recommend items similar to what the user liked before, based on item/user *descriptions*.
+2. **Collaborative filtering** — recommend based on what *similar users* liked (Part 2, not covered in this deck).
+
+### Content-based methods
+**Assumption:** a user's interest should match the description of items recommended to them — the more similar an item's description is to the user's interest profile, the more likely the user finds it interesting.
+
+**Goal:** find the similarity between the user (profile) and all existing items.
+
+**Example:** a book database has structured fields (Title, Genre, Author, Type, Price, Keywords); a user profile is built as a similar structured record summarizing the genres/authors/keywords the user tends to interact with. Items whose descriptions best match the profile get recommended (e.g., Amazon product recommendations built from browsing/purchase history).
+
+**Algorithm outline:**
+
+1. Describe the items to be recommended.
+2. Create a profile of the user describing the types of items they like (often built/updated automatically from feedback on previously shown items).
+3. Compare items with the user profile to determine what to recommend.
+
+Illustration: if user $u_3$ interacted with item $i_2$ (basic seat: [RFIC-A, EMD-A, BS-Basic]) and item $i_3$ (premium seat: [RFIC-A, EMD-A, PR-Premium]) shares most of the same characteristics, $i_3$ gets recommended to $u_3$ via content-based filtering even without $u_3$ ever interacting with it directly.
+
+### Vectorizing users and items
+Represent both user profiles and item descriptions as vectors over a shared set of $k$ keywords, then rank items by similarity to the user vector:
+$$I_j = (i_{j,1}, i_{j,2}, \dots, i_{j,k}), \qquad U_i = (u_{i,1}, u_{i,2}, \dots, u_{i,k})$$
+$$sim(U_i, I_j) = \cos(U_i, I_j) = \frac{\sum_{l=1}^k u_{i,l}\, i_{j,l}}{\sqrt{\sum_{l=1}^k u_{i,l}^2}\sqrt{\sum_{l=1}^k i_{j,l}^2}}$$
+Recommend the top-$r$ most similar items to the user.
+
+### Text representation: Bag-of-Words & Vector Space Model
+Documents (item descriptions / profiles built from text) are commonly transformed into vectors — the **Bag-of-Words** / **Vector Space Model** representation — so they can be manipulated with linear algebra.
+
+For a document corpus $D$, each document $i$ becomes $d_i = (w_{1,i}, w_{2,i}, \dots, w_{N,i})$, where $w_{j,i}$ is the weight of word $j$ in document $i$. Simplest weighting: $w_{j,i}=1$ if word $j$ appears in document $i$, else 0. A richer option is raw **frequency** (count of occurrences), and richer still is **TF-IDF**.
+
+**Worked example** — documents $d_1$="social media mining", $d_2$="social media data", $d_3$="financial market data"; dictionary (social, media, mining, data, financial, market) gives the binary term-presence vectors:
+
+| | social | media | mining | data | financial | market |
+|---|---|---|---|---|---|---|
+| $d_1$ | 1 | 1 | 1 | 0 | 0 | 0 |
+| $d_2$ | 1 | 1 | 0 | 1 | 0 | 0 |
+| $d_3$ | 0 | 0 | 0 | 1 | 1 | 1 |
+
+### TF-IDF (Term Frequency – Inverse Document Frequency)
+$$w_{j,i} = tf_{j,i} \times idf_j, \qquad idf_j = \log_2 \frac{|D|}{|\{\text{document}\in D \mid j \in \text{document}\}|}$$
+$tf_{j,i}$ = frequency of word $j$ in document $i$; $idf_j$ down-weights words that appear in *many* documents (less discriminative) and up-weights rare, distinctive words.
+
+**Worked example (frequency form):** $d_1$ has 100 words; "apple" appears 10 times in $d_1$ and in no other of the $|D|=20$ documents, while "orange" appears 20 times in $d_1$ but also appears in all 20 documents:
+$$tf\text{-}idf(\text{"apple"}, d_1) = 10 \times \log_2\frac{20}{1} = 43.22$$
+$$tf\text{-}idf(\text{"orange"}, d_1) = 20 \times \log_2\frac{20}{20} = 0$$
+"Apple" is distinctive to $d_1$ and scores high; "orange" appears everywhere and is scored 0 — despite the higher raw frequency, it carries no discriminating power.
+
+**Worked example (binary $tf\in\{0,1\}$ form, continuing the social-media-mining example):** with $|D|=3$, $idf_{\text{social}}=idf_{\text{media}}=idf_{\text{data}}=\log_2(3/2)=0.584$ (each appears in 2 of 3 docs) and $idf_{\text{mining}}=idf_{\text{financial}}=idf_{\text{market}}=\log_2(3/1)=1.584$ (each appears in only 1 doc), giving the TF-IDF matrix:
+
+| | social | media | mining | data | financial | market |
+|---|---|---|---|---|---|---|
+| $d_1$ | 0.584 | 0.584 | 1.584 | 0 | 0 | 0 |
+| $d_2$ | 0.584 | 0.584 | 0 | 0.584 | 0 | 0 |
+| $d_3$ | 0 | 0 | 0 | 0.584 | 1.584 | 1.584 |
+
+### Content-based recommendation algorithm (Algorithm 9.1)
+> **Require:** user $i$'s profile info, item descriptions for items $j \in \{1,\dots,n\}$, $k$ keywords, $r$ = number of recommendations.
+> 1. $U_i = (u_1,\dots,u_k)$ = user $i$'s profile vector.
+> 2. $\{I_j\}_{j=1}^n$ = item description vectors.
+> 3. $s_{i,j} = sim(U_i, I_j)$ for $1 \leq j \leq n$.
+> 4. Return the top $r$ items with maximum similarity $s_{i,j}$.
+
+### (Dis)advantages of content-based recommendation
+- Does **not** leverage information from other, similar users (no "wisdom of the crowd" effect) — this is exactly what collaborative filtering (Part 2) adds.
+- **Lack of novelty**: tends to recommend items very similar to what the user already likes, rarely surprising them.
+- **Useful for cold-start**: works even for a brand-new item as soon as it has a description — unlike collaborative filtering, it doesn't need other users to have already rated/interacted with it.
+
+### Case Recommender: an example open-source framework
+`week6/caseRecommender.pdf` is the RecSys '18 paper for **Case Recommender**, an open-source Python framework (`pip install caserecommender`, MIT license) implementing both rating-prediction and item-recommendation scenarios:
+
+- **Neighborhood-based (NB)** and **matrix factorization (MF)** models for both collaborative and content-based filtering.
+- **Clustering** algorithms (PaCo, KMedoids) to pre-process data for recommenders, and **ensemble** techniques (e.g., BPR Learning, tag-based, average-based) to combine multiple recommenders — features the paper highlights as rarer among competing toolkits (EasyRec, Mahout, LensKit, RiVal, MyMediaLite, Crab).
+- 15+ (dis)similarity metrics (cosine, Pearson, etc.) via SciPy.
+- Evaluation: RMSE/MAE for rating prediction; prec@N, recall@N, MAP@N, NDCG@N for item recommendation; K-fold cross-validation, Shuffle Sample, All-But-One protocol, and significance tests (Wilcoxon signed-rank, paired t-test).
+
+---
+
 ## Dataset Index
 
 | Week | Path | Represents |
@@ -313,6 +416,8 @@ Builds a full hierarchy rather than one flat partition:
 | 4 | `week4/clustering/` | 4-node graph (triangle + pendant) — hand-computable local clustering coefficient example |
 | 5 | `week5/Community detection/` | 9-node, 15-edge toy graph used for both the modularity-maximization example (communities {1,2,3,4} vs {5,6,7,8,9}) and the Girvan–Newman walkthrough |
 | 5 | `week5/karate.gml` | Zachary's Karate Club — 34 nodes, 78 edges, the canonical community-detection benchmark |
+| 6 | `week6/SMM-Slides-ch9-part1.pdf` | Chapter 9 (Part 1) slides — content-based recommendation, TF-IDF, Algorithm 9.1 |
+| 6 | `week6/caseRecommender.pdf` | RecSys '18 paper on the *Case Recommender* Python framework (no graph dataset this week) |
 
 ## Concept Progression Cheat Sheet
 
@@ -325,4 +430,7 @@ Degree → Eigenvector → Katz → PageRank centrality (W3)
 Betweenness / Closeness / Cliques / Transitivity / Similarity (W4)
         ↓
 Modularity → Louvain → Hierarchical (Girvan-Newman) community detection (W5)
+        ↓
+Recommendation: Content-based filtering (TF-IDF + cosine similarity) (W6)
+  (Part 2 — Collaborative filtering — to follow)
 ```
